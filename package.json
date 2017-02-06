@@ -1,0 +1,41 @@
+{
+  "name": "bolt-module-events",
+  "version": "0.0.2",
+  "description": "Module to install /api/events routes in Bolt",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Chieze-Franklin/bolt-module-events"
+  },
+  "author": "Chieze Franklin",
+  "bugs": {
+    "url": "https://github.com/Chieze-Franklin/bolt-module-events/issues"
+  },
+  "dependencies": {
+    "bolt-internal-checks": "*",
+    "bolt-internal-config": "*",
+    "bolt-internal-defs": "*",
+    "bolt-internal-errors": "*",
+    "bolt-internal-get-routes": "*",
+    "bolt-internal-models": "*",
+    "bolt-internal-schemata": "*",
+    "bolt-internal-setup": "*",
+    "bolt-internal-sockets": "*",
+    "bolt-internal-utils": "*"
+  },
+  "keywords": [
+    "bolt",
+    "module",
+    "events",
+    "bolt-module-events"
+  ],
+  "bolt": {
+    "displayName": "Bolt Events Module",
+    "module": true,
+    "routers": {
+      "bolt-api-events": {
+        "main": "routers/api-events",
+        "root": "/api/events"
+      }
+    }
+  }
+}
