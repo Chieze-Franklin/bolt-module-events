@@ -1,12 +1,13 @@
 var config = require("bolt-internal-config");
 var utils = require("bolt-internal-utils");
 var models = require("bolt-internal-models");
+var sockets = require("bolt-internal-sockets");
 
 var superagent = require('superagent');
 
 module.exports = {
 	getInfo: function(request, response){
-		//accepts a token and returns publisher, event name, subscriber, hook
+		//TODO: accepts a token and returns publisher, event name, subscriber, hook
 	},
 	postEvent: function(request, response){
 		var evnt = {};
@@ -46,16 +47,29 @@ module.exports = {
 									.post(config.getProtocol() + '://' + config.getHost() + ':' + context.port + ("/" + utils.String.trimStart(hook.route, "/")))
 									.send(evnt)
 									.end(function(evntError, evntResponse){});
+								//send event to socket for the app
+								var socket = sockets.getSocket(context.name); //socket will always be undefined if context is running on another process
+								if (!utils.Misc.isNullOrUndefined(socket)) 
+									//socket.send(JSON.stringify(evnt));
+									socket.broadcast.to(context.name).emit("message", JSON.stringify(evnt));
 							}
 						});
 				});
 			}
 		});
-		//send event to socket.io so dt it can send it to clients
-		//sent event to an event emitter so ppl can do something like BoltEventEmitter.on("bolt/user-login", callback)
+
+		//send event to socket for bolt
+		var socket = sockets.getSocket("bolt");
+		if (!utils.Misc.isNullOrUndefined(socket)) 
+			//socket.send(JSON.stringify(evnt));
+			socket.broadcast.to("bolt").emit("message", JSON.stringify(evnt));
+		
+		//send event to an event emitter so ppl can do something like BoltEventEmitter.on("bolt/user-login", callback)
 			//do this only if no other component can make BoltEventEmitter to emit the event
+			//I dont feel like doing this since everybody will get the event irrespective of the "subscribers" specified by the publisher
 			
 		//send a response back
+		response.send();
 	},
 	postSub: function(request, response){
 		//
