@@ -1,6 +1,6 @@
 {
   "name": "bolt-module-events",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Module to install /api/events routes in Bolt",
   "repository": {
     "type": "git",

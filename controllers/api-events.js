@@ -6,9 +6,6 @@ var sockets = require("bolt-internal-sockets");
 var superagent = require('superagent');
 
 module.exports = {
-	getInfo: function(request, response){
-		//TODO: accepts a token and returns publisher, event name, subscriber, hook
-	},
 	postEvent: function(request, response){
 		var evnt = {};
 		evnt.body = request.body.body || {};
@@ -16,7 +13,6 @@ module.exports = {
 		evnt.publisher = request.appName;
 		//if(!utils.Misc.isNullOrUndefined(request.body.subscribers)) { evnt.subscribers = request.body.subscribers; }
 		evnt.time = new Date();
-		//TODO: event ID, type??
 
 		var criteria = { 
 			$or: [{publisher: evnt.publisher}, {publisher: "*"}],
@@ -32,8 +28,6 @@ module.exports = {
 		models.hook.find(criteria, function(error, hooks){
 			if (!utils.Misc.isNullOrUndefined(hooks)) {
 				hooks.forEach(function(hook){
-					//TODO: generate evnt.token for each app/subscriber (note that multiple hooks can have the same subscriber)
-
 					//start the subscriber server
 					superagent
 						.post(config.getProtocol() + '://' + config.getHost() + ':' + config.getPort() + '/api/apps/start')
@@ -43,15 +37,18 @@ module.exports = {
 
 							//POST the event
 							if (!utils.Misc.isNullOrUndefined(context) && !utils.Misc.isNullOrUndefined(context.port)) {
+								var event = evnt;
+								event.token = request.genAppToken(context.name); //set the event token to equal he app token
+
 								superagent
 									.post(config.getProtocol() + '://' + config.getHost() + ':' + context.port + ("/" + utils.String.trimStart(hook.route, "/")))
-									.send(evnt)
+									.send(event)
 									.end(function(evntError, evntResponse){});
 								//send event to socket for the app
 								var socket = sockets.getSocket(context.name); //socket will always be undefined if context is running on another process
 								if (!utils.Misc.isNullOrUndefined(socket)) 
-									//socket.send(JSON.stringify(evnt));
-									socket.broadcast.to(context.name).emit("message", JSON.stringify(evnt));
+									//socket.send(JSON.stringify(event));
+									socket.broadcast.to(context.name).emit("message", JSON.stringify(event));
 							}
 						});
 				});
@@ -60,9 +57,13 @@ module.exports = {
 
 		//send event to socket for bolt
 		var socket = sockets.getSocket("bolt");
-		if (!utils.Misc.isNullOrUndefined(socket)) 
-			//socket.send(JSON.stringify(evnt));
-			socket.broadcast.to("bolt").emit("message", JSON.stringify(evnt));
+		if (!utils.Misc.isNullOrUndefined(socket)) {
+			var event = evnt;
+			event.token = request.genAppToken("bolt"); //set the event token to equal he app token
+
+			//socket.send(JSON.stringify(event));
+			socket.broadcast.to("bolt").emit("message", JSON.stringify(event));
+		}
 		
 		//send event to an event emitter so ppl can do something like BoltEventEmitter.on("bolt/user-login", callback)
 			//do this only if no other component can make BoltEventEmitter to emit the event
@@ -70,11 +71,5 @@ module.exports = {
 			
 		//send a response back
 		response.send();
-	},
-	postSub: function(request, response){
-		//
-	},
-	postUnsub: function(request, response){
-		//
 	}
 };
