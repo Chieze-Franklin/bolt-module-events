@@ -30,25 +30,34 @@ module.exports = {
 				hooks.forEach(function(hook){
 					//start the subscriber server
 					superagent
-						.post(config.getProtocol() + '://' + config.getHost() + ':' + config.getPort() + '/api/apps/start')
+						.post(process.env.BOLT_ADDRESS + '/api/apps/start')
 						.send({ name: hook.subscriber })
 						.end(function(appstartError, appstartResponse){
 							var context = appstartResponse.body.body;
 
 							//POST the event
-							if (!utils.Misc.isNullOrUndefined(context) && !utils.Misc.isNullOrUndefined(context.port)) {
+							if (!utils.Misc.isNullOrUndefined(context)) {
 								var event = evnt;
 								event.token = request.genAppToken(context.name); //set the event token to equal he app token
 
-								superagent
-									.post(config.getProtocol() + '://' + config.getHost() + ':' + context.port + ("/" + utils.String.trimStart(hook.route, "/")))
-									.send(event)
-									.end(function(evntError, evntResponse){});
-								//send event to socket for the app
+								if (!utils.Misc.isNullOrUndefined(context.port)) {
+									superagent
+										.post(context.protocol + '://' + context.host + ':' + context.port + ("/" + utils.String.trimStart(hook.route, "/")))
+										.send(event)
+										.end(function(evntError, evntResponse){});
+								}
+								else if (context.app.system) {
+									superagent
+										.post(process.env.BOLT_ADDRESS + "/x/" + context.name + ("/" + utils.String.trimStart(hook.route, "/")))
+										.send(event)
+										.end(function(evntError, evntResponse){});
+								}
+									
+								/*//send event to socket for the app
 								var socket = sockets.getSocket(context.name); //socket will always be undefined if context is running on another process
 								if (!utils.Misc.isNullOrUndefined(socket)) 
 									//socket.send(JSON.stringify(event));
-									socket.broadcast.to(context.name).emit("message", JSON.stringify(event));
+									socket.broadcast.to(context.name).emit("message", JSON.stringify(event));*/
 							}
 						});
 				});
