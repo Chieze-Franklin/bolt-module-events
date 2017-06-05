@@ -11,4 +11,6 @@ router.post('/:name', checksCtrlr.getAppName, apiEventsCtrlr.postEvent);
 //router.post('/sub', apiEventsCtrlr.postSub);
 //router.post('/unsub', apiEventsCtrlr.postUnsub);
 
+//TODO: an endpoint for validating events
+
 module.exports = router;
