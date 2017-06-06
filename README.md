@@ -1,13 +1,5 @@
 # bolt-module-events
 
-Module to install /api/events routes in Bolt.
-
-## Installation
-
-```sh
-$ npm install bolt-module-events
-```
-
-## Use
-
-Please visit https://chieze-franklin.gitbooks.io/bolt-js/content/ for a detailed description of Bolt server endpoints.
+Due to how critical this component is, it has been moved into the Bolt core.  
+The endpoint '/api/events' is now a native endpoint.  
+This external module will no longer be supported.
